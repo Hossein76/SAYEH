@@ -1,0 +1,86 @@
+LIBRARY ieee;
+USE ieee.std_logic_1164.ALL;
+USE ieee.std_logic_arith.ALL;
+USE ieee.std_logic_unsigned.ALL;
+----------------------
+ENTITY and_component IS PORT(
+    Rs   : IN STD_LOGIC_VECTOR(15 DOWNTO 0);  -- Source Register
+    Rd   : IN STD_LOGIC_VECTOR(15 DOWNTO 0) ; -- Destination Register
+    Result   : OUT STD_LOGIC_VECTOR(15 DOWNTO 0)  -- the result goes into destination register
+);
+END and_component;
+
+ARCHITECTURE description_and_component OF and_component IS
+
+BEGIN
+  Result <= Rs and Rd ;
+END description_and_component;
+
+---------------------
+
+ENTITY or_component IS PORT(
+    Rs   : IN STD_LOGIC_VECTOR(15 DOWNTO 0);  -- Source Register
+    Rd   : IN STD_LOGIC_VECTOR(15 DOWNTO 0) ; -- Destination Register
+    Result   : OUT STD_LOGIC_VECTOR(15 DOWNTO 0)  -- the result goes into destination register
+);
+END or_component;
+
+ARCHITECTURE description_or_component OF or_component IS
+
+BEGIN
+  Result <= Rs or Rd ;
+END description_or_component;
+----------------------------
+
+ENTITY rshift_component IS PORT(
+    Rs   : IN STD_LOGIC_VECTOR(15 DOWNTO 0);  -- Source Register
+    Rd   : OUT STD_LOGIC_VECTOR(15 DOWNTO 0)  -- Destination Register
+);
+END rshift_component;
+
+ARCHITECTURE description_rshift_component OF rshift_component IS
+
+BEGIN
+Rd <=  Rs(15) & Rs(14 DOWNTO 0) ;
+END description_rshift_component;
+
+---------------------------
+ENTITY lshift_component IS PORT(
+    Rs   : IN STD_LOGIC_VECTOR(15 DOWNTO 0);  -- Source Register
+    Rd   : OUT STD_LOGIC_VECTOR(15 DOWNTO 0)  -- Destination Register
+);
+END lshift_component;
+
+ARCHITECTURE description_lshift_component OF lshift_component IS
+
+BEGIN
+Rd <=  Rs(14 DOWNTO 0) & Rs(15);
+END description_lshift_component;
+---------------------------
+
+---------------------------
+ENTITY comparison_component IS PORT(
+    Rs   : IN STD_LOGIC_VECTOR(15 DOWNTO 0);  -- Source Register
+    Rd   : IN STD_LOGIC_VECTOR(15 DOWNTO 0);  -- Destination Register
+    zeroFlag : OUT STD_LOGIC ;  -- output to the zero flag register
+    carryFlag : OUT STD_LOGIC ;  -- output to the carry flag register
+);
+END comparison_component;
+
+ARCHITECTURE description_comparison_component OF comparison_component IS
+BEGIN
+process(RS,Rd)
+begin
+    if Rs=Rd then
+      zeroFlag <= '1';
+      carryFlag <= '0';
+    elsif to_integer(Rd) < to_integer(Rs) then
+      zeroFlag <= '0';
+      carryFlag <= '1';
+    else
+    zeroFlag <= '0';
+    carryFlag <= '0';
+  end if;
+end process;
+END description_comparison_component;
+---------------------------
