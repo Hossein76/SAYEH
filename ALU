@@ -330,8 +330,24 @@ architecture description_addition_component of addition_component is
 
     begin
 
-      s <= b XOR cin XOR a ;
-      cout <= (a AND b) OR (cin AND b) OR (a AND cin) ;
+      s <= b xor cin xor a ;
+      cout <= (a and b) OR (cin and b) OR (a and cin) ;
 
     end description_full_adder;
     ---------------------------------
+
+    ENTITY subtraction_component IS PORT(
+    Rs   : IN STD_LOGIC_VECTOR(15 DOWNTO 0);  -- Source Register
+    carryFlagIn: IN STD_LOGIC;
+    Result   : OUT STD_LOGIC_VECTOR(15 DOWNTO 0);  -- Result goes to the Rs of the addition_component
+    carryFlag : OUT STD_LOGIC   -- output to the carryFlagIn of addition_component
+    );
+    END subtraction_component;
+
+    ARCHITECTURE description_subtraction_component OF subtraction_component IS
+    BEGIN
+
+    Result <= Rs xnor x"F0";
+
+
+    END description_subtraction_component;
