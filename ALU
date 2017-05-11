@@ -340,7 +340,7 @@ architecture description_addition_component of addition_component is
     Rs   : IN STD_LOGIC_VECTOR(15 DOWNTO 0);  -- Source Register
     carryFlagIn: IN STD_LOGIC;
     Result   : OUT STD_LOGIC_VECTOR(15 DOWNTO 0);  -- Result goes to the Rs of the addition_component
-    carryFlag : OUT STD_LOGIC   -- output to the carryFlagIn of addition_component
+    carryFlagOut : OUT STD_LOGIC   -- output to the carryFlagIn of addition_component
     );
     END subtraction_component;
 
@@ -348,6 +348,10 @@ architecture description_addition_component of addition_component is
     BEGIN
 
     Result <= Rs xnor x"F0";
-
+    if carryFlag='1'then
+     carryFlagOut<='0';
+   else
+     carryFlagOut<='1';
+   end if;
 
     END description_subtraction_component;
