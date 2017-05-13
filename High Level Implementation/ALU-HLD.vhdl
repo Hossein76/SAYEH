@@ -23,15 +23,15 @@ architecture description_ALU of ALU is
     process (Rd, Rs, opcode, carryFlagIn)
 
     begin
-      if opcode = "0000" then  -- and component
+if opcode = "0000" then  -- and component
       Result <= Rd and Rs;
       carryFlagOut <= '0';
       zeroFlag<='0';
-    elsif opcode = "0001" then  --- or component
+elsif opcode = "0001" then  --- or component
     Result <= Rd or Rs;
     carryFlagOut <= '0';
     zeroFlag<='0';
-  elsif opcode = "0010"  then ----xor component
+elsif opcode = "0010"  then ----xor component
   Result <= Rd xor Rs;
   carryFlagOut <= '0';
   zeroFlag<='0';
