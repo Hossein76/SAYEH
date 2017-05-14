@@ -8,6 +8,7 @@ Rd : in std_logic_vector(15 downto 0);--- destination register
 carryFlagIn : in std_logic;   --- we get the carry
 opcode : in std_logic_vector(3 downto 0); --- we get the opcode to know what to do
 Result : out std_logic_vector(15 downto 0);  ---- result of alu
+clk : in std_logic ;
 carryFlagOut : out std_logic; ----- we set the carry
 zeroFlag : out std_logic);  ----- we set the zero flag
 end  ALU;
@@ -17,24 +18,61 @@ architecture description_ALU of ALU is
   signal result : std_logic_vector(16 downto 0);
   signal Rs_temp :  std_logic_vector(16 downto 0);
   signal Rd_temp :  std_logic_vector(16 downto 0);
+  signal rand_temp :  std_logic_vector(63 downto 0);
+  component  rand_component is
+    generic (
+    init_seed:  std_logic_vector(127 downto 0) );
+    port (
+    clk:        in  std_logic;
+    rst:        in  std_logic;
+    reseed:     in  std_logic;
+    newseed:    in  std_logic_vector(127 downto 0);
+    out_ready:  in  std_logic;
+    out_valid:  out std_logic;
+    out_data:   out std_logic_vector(63 downto 0) );
+  end component rand_component;
+
 
   begin
+    rand_generator : rand_component
+    generic map
+              init_seed => x"0123456789abcdef3141592653589793" )
+          port map (
+              clk         => clk,
+              rst         => '0',
+              reseed      => '0',
+              newseed     => open,
+              out_ready   => '1',
+              out_valid   => open,
+              out_data    => rand_temp );
 
     process (Rd, Rs, opcode, carryFlagIn)
 
     begin
-if opcode = "0000" then  -- and component
+      if opcode = "0000" then  -- and component
       Result <= Rd and Rs;
       carryFlagOut <= '0';
-      zeroFlag<='0';
-elsif opcode = "0001" then  --- or component
+      if Rd and Rs=x"F0" then
+        zeroFlag <='1';
+      else
+        zeroFlag<= '0';
+      end if ;
+    elsif opcode = "0001" then  --- or component
     Result <= Rd or Rs;
     carryFlagOut <= '0';
-    zeroFlag<='0';
-elsif opcode = "0010"  then ----xor component
+    if Rd or Rs=x"F0" then
+      zeroFlag <='1';
+    else
+      zeroFlag<= '0';
+    end if ;
+  elsif opcode = "0010"  then ----xor component
   Result <= Rd xor Rs;
   carryFlagOut <= '0';
-  zeroFlag<='0';
+  if Rd xor Rs=x"F0" then
+    zeroFlag <='1';
+  else
+    zeroFlag<= '0';
+  end if ;
 elsif opcode = "0011" then ----- 2' complement component
 Result <=((not Rs)+'1');
 carryFlagOut <= '0';
@@ -144,3 +182,4 @@ end if ;
 end process;
 
 end  description_ALU;
+1111101010001010001001010101000000100111100101010000000010100000010100000000000000010000000000000100101000001010000111000100000
