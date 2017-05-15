@@ -3,53 +3,23 @@ USE ieee.std_logic_1164.ALL;
 USE ieee.std_logic_arith.ALL;
 USE ieee.std_logic_unsigned.ALL;
 
-ENTITY register16 IS PORT(
-d   : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
-sinput  : IN STD_LOGIC; -- serila input.
-sleft  : IN STD_LOGIC; -- shift left.
-sright  : IN STD_LOGIC; -- shift right.
-slogical  : IN STD_LOGIC; -- if 1 logical shift instead of circural shift.
-ld  : IN STD_LOGIC; -- load/enable.
-clr : IN STD_LOGIC; -- clear.
-clk : IN STD_LOGIC; -- clock.
-q   : OUT STD_LOGIC_VECTOR(15 DOWNTO 0) -- output
+ENTITY instruction_register IS PORT(
+clk,IRload : in std_logic;
+ IRin : in std_logic_vector(15 downto 0);
+ IRout : out std_logic_vector(15 downto 0)
 );
-END register16;
+END instruction_register;
 
-ARCHITECTURE description_register16 OF register16 IS
-singal temp : std_logic_vector(15 downto 0);
+ARCHITECTURE description_instruction_register OF instruction_register IS
 BEGIN
 process(clk)
 begin
-  if rising_edge(clk)then
-    if ld='1' then
-      temp <= d;
-      q <= d ;
-    elsif sinput='1' then
-      q <= temp(14 DOWNTO 0) & d(0);
-    elsif clr='1' then
-      q <= x"F0";
-    elsif sleft='1' then
-      q <= temp(14 DOWNTO 0) & temp(15);
-      if slogical ='1' then
-        q(0)<= '0';
-      end if ;
-    elsif sright='1' then
-      q <=   temp(0) & temp(15 DOWNTO 1) ;
-      if slogical ='1' then
-        q(15)<= '0';
-      end if ;
-    end if;
-
-  end if;
+  if rising_edge(clk) and IRload='1' then
+         IRout <= IRin;
+       end if;
 end process;
-END description_register16;
-
-
-
-
-
-
+END description_instruction_register;
+----------------------------------
 ENTITY window_pointer IS PORT(
 wp_in : in std_logic_vector(5 downto 0);
 WPadd,WPreset,clk : in std_logic;
