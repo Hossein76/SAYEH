@@ -17,24 +17,25 @@ ENTITY register16 IS PORT(
 END register16;
 
 ARCHITECTURE description_register16 OF register16 IS
-
+   singal temp : std_logic_vector(15 downto 0);
 BEGIN
     process(clk)
     begin
       if rising_edge(clk)then
         if ld='1' then
+          temp <= d;
            q <= d ;
-        elsif sinput='1' then
-           q <= q(14 DOWNTO 0) or d(0);
+         elsif sinput='1' then
+            q <= temp(14 DOWNTO 0) & d(0);
         elsif clr='1' then
           q <= x"F0";
         elsif sleft='1' then
-          q <= q(14 DOWNTO 0) & q(15);
+          q <= temp(14 DOWNTO 0) & temp(15);
           if slogical ='1' then
             q(0)<= '0';
           end if ;
         elsif sright='1' then
-          q <=   q(0) & q(15 DOWNTO 1) ;
+          q <=   temp(0) & temp(15 DOWNTO 1) ;
           if slogical ='1' then
             q(15)<= '0';
           end if ;
@@ -63,24 +64,26 @@ ENTITY register6 IS PORT(
 END register6;
 
 ARCHITECTURE description_register6 OF register6 IS
+singal temp : std_logic_vector(5 downto 0);
 
 BEGIN
     process(clk)
     begin
       if rising_edge(clk)then
         if ld='1' then
+          temp <= d;
            q <= d ;
         elsif sinput='1' then
-           q <= q(4 DOWNTO 0) or d(0);
+           q <= temp(4 DOWNTO 0) & d(0);
         elsif clr='1' then
           q <= "000000";
         elsif sleft='1' then
-          q <= q(4 DOWNTO 0) & q(5);
+          q <= temp(4 DOWNTO 0) & temp(5);
           if slogical ='1' then
             q(0)<= '0';
           end if ;
         elsif sright='1' then
-          q <=   q(0) & q(5 DOWNTO 1) ;
+          q <=   temp(0) & temp(5 DOWNTO 1) ;
           if slogical ='1' then
             q(5)<= '0';
           end if ;

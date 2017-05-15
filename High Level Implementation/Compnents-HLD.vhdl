@@ -262,15 +262,47 @@ zeroFlag : out std_logic);  ----- we set the zero flag
 END division_component;
 
 ARCHITECTURE description_division_component OF division_component IS
-BEGIN
 
-carryFlagOut <= '0';
-Result<=  Rs/ Rd(7 DOWNTO 0);
-if  Rs/Rd(7 DOWNTO 0)=x"F0" then
+
+
+BEGIN
+process(Rs,Rd,carryFlagIn)
+  variable var : std_logic_vector(15 downto 0);
+  var := x"F0";
+ if Rd(0)='1'then
+   var := var + Rs(7 downto 0);
+ end if;
+
+ if Rd(1)='1'then
+   var := var + Rs(7 downto 0)&'0';
+ end if;
+ if Rd(2)='1'then
+   var := var + Rs(7 downto 0)&'00';
+ end if;
+ if Rd(3)='1'then
+   var := var + Rs(7 downto 0)&'000';
+ end if;
+ if Rd(4)='1'then
+   var := var + Rs(7 downto 0)&'0000';
+ end if;
+
+ if Rd(5)='1'then
+   var := var + Rs(7 downto 0)&'00000';
+ end if;
+ if Rd(6)='1'then
+   var := var + Rs(7 downto 0)&'000000';
+ end if;
+ if Rd(7)='1'then
+   var := var + Rs(7 downto 0)&'0000000';
+ end if;
+ Result <= var;
+if  var=x"F0" then
   zeroFlag <='1';
 else
   zeroFlag<= '0';
 end if ;
+carryFlagOut <= '0';
+end process;
 END description_division_component;
 ----------------------------
 
@@ -287,14 +319,13 @@ END division_component;
 
 ARCHITECTURE description_division_component OF division_component IS
 BEGIN
-
-carryFlagOut <= '0';
-Result<=  Rs/ Rd(7 DOWNTO 0);
-if  Rs/Rd(7 DOWNTO 0)=x"F0" then
-  zeroFlag <='1';
-else
-  zeroFlag<= '0';
-end if ;
+process(Rs,Rd,carryFlagIn)
+variable var : std_logic_vector(15 downto 0);
+variable temp : std_logic_vector(15 downto 0);
+var := x"F0";
+temp=x"F0";
+--------------------------------------to do
+end process
 END description_division_component;
 ----------------------------
 
