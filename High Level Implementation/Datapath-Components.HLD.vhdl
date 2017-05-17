@@ -21,8 +21,9 @@ end process;
 END description_instruction_register;
 ----------------------------------
 ENTITY window_pointer IS PORT(
+clk : in std_logic;
 wp_in : in std_logic_vector(5 downto 0);
-WPadd,WPreset,clk : in std_logic;
+WPadd,WPreset : in std_logic;
 wp_out : out std_logic_vector(5 downto 0)
 );
 END window_pointer;
@@ -44,8 +45,8 @@ END description_window_pointer;
 -----------------------------------------
 
 ENTITY flags IS PORT(
-Zin,Cin,CSet,CReset,ZSet,ZReset,SRload   : IN STD_LOGIC;
 clk : IN STD_LOGIC; -- clock.
+Zin,Cin,CSet,CReset,ZSet,ZReset,SRload   : IN STD_LOGIC;
 Cout,Zout   : OUT STD_LOGIC -- output
 );
 END flags;

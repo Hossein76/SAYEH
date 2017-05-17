@@ -1,534 +1,386 @@
 library IEEE;
 use IEEE.std_logic_1164.all;
-entity Controller is
+entity controller is
   port (
   clk, External_Reset,MemDataReady,Zin,Cin : in std_logic;
-  IRout : in std_logic_vector(15 downto 0);
+  IRdataIN : in std_logic_vector(15 downto 0);
   --  ouputs starts  here :
-  --Adressing Unit
-  ResetPC , PCplusI , PCplus1 , R0plusI , R0plus0 , EnablePC : out std_logic;
-  -- flags inputs
-  Cset , Creset , Zset, Zreset , SRload : out std_logic;
-  -- ALU inputs
-  funcSelect : out std_logic_vector(3 downto 0);
-  --RegisterFile inputs
-  RFLWrite , RFHWrite: out std_logic;
-  --WP inputs
-  WPadd , WPreset : out std_logic;
-  --IR inputs
-  IRload : out std_logic;
-  --TriStates  inputs
-  Adress_on_DataBus , ALUOut_on_DataBus , Rs_on_AdressUnitRside , Rd_on_AdressUnitRside : out std_logic;
-  --  memory inputs
-  ReadMem: out std_logic;
-  WriteMem: out std_logic
+  ResetPC , PCplusI , PCplus1, RplusI , Rplus0  , EnablePC : out std_logic;  --  signals for the addressing unit
+  CSet , CReset , ZSet, ZReset , SRload : out std_logic;  -- signals for the flags
+  IRload : out std_logic;  --signals for the instruction register
+  opcode : out std_logic_vector(3 downto 0);  -- signals for the alu
+  RFLwrite , RFHwrite: out std_logic;  --  signals for the register file
+  WPadd , WPreset : out std_logic;  -- signals for the window pointer
+  Address_on_Databus , ALUout_on_Databus , Rs_on_AddressUnitRSide , Rd_on_AddressUnitRSide : out std_logic;  --singals for the datapath
+  PortNumber : out std_logic_vector(5 downto 0); ---- number of the port to be used
+  ReadPort,WritePort: out std_logic;  --  signals for the portmanager
+  ReadMem,WriteMem: out std_logic  --  signals for the memory
   );
 
-end entity;
-architecture rtl of controller is
+end controller;
+architecture description_controller of controller is
   --  s0 --> fetch ,  s2..29 --> ir instruction decode
-  type state is (S_reset, S_firstFetch,S_secondFetch,S_waitBeforeDecode ,S_decode, S_updatePC, S_halt , S_and , S_or , S_not ,
-  S_shiftleft , S_shiftright , S_add , S_subtraction , S_multiply , S_comparison ,S_noOperation, S_setZFlag,
-  S_clearZflag, S_setCarryFlag , S_clearCarryFlag, S_clearWindowPointer, S_moveRegister, S_loadAddress ,S_loadAddress2, S_storeAdress, S_moveImmidiateLow,
-  S_moveImmidiateHigh, S_savePC, S_jumpAddress, S_jumpRelative, S_brachIfZero, S_brachIfCarry, S_addWindowPointer);
-  signal current_state : state := S_reset;
-  signal next_state : state;
+  type state is (reseting_controller,
+  fetch_one,
+  fetch_two,
+  wait_for_decode ,
+  decoding, pc_update,
+  execute_nothing,
+  halting ,
+  execute_ZFset,
+  execute_ZF_clr,
+  execute_CFset ,
+  execute_CF_clr,
+  execute_WP_clr,
+  execute_move_register,
+  execute_load_address ,
+  execute_load_address_two,
+  execute_save_address,
+  execute_input_from_port,
+  execute_output_to_port,
+  execute_and ,
+  execute_or ,
+  execute_not ,
+  execute_shift_left ,
+  execute_shift_right ,
+  execute_add ,
+  execute_subtraction ,
+  execute_multiply ,
+  execute_compare ,
+  execute_move_immd_low,
+  execute_move_immd_high,
+  execute_save_pc,
+  execute_jump_address,
+  execute_jump_relative,
+  execute_branch_if_zero,
+  execute_branch_if_carry,
+  execute_add_WP);
+  signal controller_state : state := reseting_controller;
+  signal upcoming_state : state;
   begin
     -- next to current
     process (clk,External_Reset)
     begin
       if External_Reset = '1' then
-        current_state <= S_reset;
-      elsif clk'event and clk = '1' then
-        current_state <= next_state;
+        controller_state <= reseting_controller;
+      elsif rising_edge(clk) then
+        controller_state <= upcoming_state;
       end if;
     end process;
     -- next based on state
-    process (current_state)
+    process (controller_state)
     begin
       ResetPC  <='0';
       PCplusI  <='0';
       PCplus1  <='0';
-      R0plusI  <='0';
-      R0plus0 <='0';
+      RplusI  <='0';
+      Rplus0 <='0';
       EnablePC <='0';
-      Cset  <='0';
-      Creset  <='0';
-      Zset  <='0';
-      Zreset  <='0';
+      CSet  <='0';
+      CReset  <='0';
+      ZSet  <='0';
+      ZReset  <='0';
       SRload  <='0';
-      RFLWrite <='0';
-      RFHWrite <='0';
+      RFLwrite <='0';
+      RFHwrite <='0';
       WPadd <='0';
       WPreset <='0';
       IRload <='0';
-      Adress_on_DataBus <='0';
-      ALUOut_on_DataBus	 <='0';
-      Rs_on_AdressUnitRside <='0';
-      Rd_on_AdressUnitRside <='0';
+      opcode <= x"F0";
+      Address_on_Databus <='0';
+      ALUout_on_Databus	 <='0';
+      Rs_on_AddressUnitRSide <='0';
+      Rd_on_AddressUnitRSide <='0';
+      PortNumber <= x"F0";
+      ReadPort <= '0';
+      WritePort<='0';
       ReadMem  <='0';
       WriteMem <='0';
-      case current_state is
+      case controller_state is
         --  reset states of the controller
-        when S_reset =>
+        when reseting_controller =>
         ResetPC <= '1';
         EnablePC <= '1';
-        Creset <= '1';
-        Zreset <= '1';
+        CReset <= '1';
+        ZReset <= '1';
         WPreset <= '1';
-        next_state <= S_firstFetch;
-        when S_firstFetch =>
+        upcoming_state <= fetch_one;
+        when fetch_one =>
         -- fist fetch data
         ReadMem <= '1';
         IRLoad <= '1';
-        next_state <= S_secondFetch;
-        when S_secondFetch =>
+        upcoming_state <= fetch_two;
+        when fetch_two =>
         -- second fetch data
         ReadMem <= '1';
         IRLoad <= '1';
-        next_state <= S_waitBeforeDecode;
-        when S_waitBeforeDecode =>
-        next_state <= S_decode;
-        when S_decode =>
+        upcoming_state <= wait_for_decode;
+        when wait_for_decode =>
+        upcoming_state <= decoding;
+        when decoding =>
         -- Decode IR_output_to_controller
-        case(IRout(15 downto 12)) is
-          --  where opcode is 0000
+        case(IRdataIN(15 downto 12)) is
           when "0000"=>
-          --  we care about next 4 bits
-          case(IRout(11 downto 8)) is
+          case(IRdataIN(11 downto 8)) is
             when "0000" =>
-            -- NO OPERATION
-            next_state <= S_noOperation;
+            upcoming_state <= execute_nothing;  -- no operation
             when "0001" =>
-            --  halt no fetch occurs
-            next_state <= S_halt;
+            upcoming_state <= halting;      --  halt ,fetching stops
             when "0010" =>
-            --  set zero flag to one and then fetch
-            next_state <= S_setZFlag;
+            upcoming_state <= execute_ZFset;      -- Z<='1' and fetch
             when "0011" =>
-            --  set zero flag to zero and then fetch
-            next_state <= S_clearZflag;
+            upcoming_state <= execute_ZF_clr;  -- Z<='0' and fetch
             when "0100"	=>
-            --  set carry  flag to one and then fetch
-            next_state <= S_setCarryFlag;
+            upcoming_state <= execute_CFset;  -- C<='1' and fetch
             when "0101"	=>
-            --  set carry  flag to zero and then fetch
-            next_state <= S_clearCarryFlag;
+            upcoming_state <= execute_CF_clr;   -- C<='0' and fetch
             when "0110"	=>
-            -- set window pointer to zero then fetch from memory
-            next_state <= S_clearWindowPointer;
+            upcoming_state <= execute_WP_clr;    -- WP<="000" and fetch
             when "0111"	=>
-            -- pc + Is
-            next_state <= S_jumpRelative;
+            upcoming_state <= execute_jump_relative;   -- PC <= PC + I
             when "1000"	=>
-            --  pc + I if only zero flag is equal to 1
-            next_state <= S_brachIfZero;
+            upcoming_state <= execute_branch_if_zero; -- PC <= PC + I if Z is  1
             when "1001"	=>
-            --  pc + I if only zero flag is equal to 1
-            next_state <= S_brachIfCarry;
+            upcoming_state <= execute_branch_if_carry; -- PC <= PC + I if C is  1
             when "1010"=>
-            -- WP + I  then fetch from memory
-            next_state <= S_addWindowPointer;
+            upcoming_state <= execute_add_WP;  -- WP <= WP + I  and fetch
             when others =>
-            next_state <= S_reset;
-          end case; --IRout(11 downto 8)
-    when "0001" =>
-          -- move register  RD <= RS
-          next_state <= S_moveRegister;
+            upcoming_state <= reseting_controller;
+          end case;
+          when "0001" =>
+          upcoming_state <= execute_move_register;      --   Rd <= Rs
           when "0010" =>
-          -- load [Rs] to Rd
-          next_state <=S_loadAddress;
+          upcoming_state <=execute_load_address;   --   Rd <= (Rs)
           when "0011" =>
-          -- store Rs to [Rd]
-  next_state <= S_storeAdress;
-    when "0100" =>
-          -- optional
-          EnablePC <= '1';
-          PCplus1 <= '1';
-          next_state <= S_firstFetch;
+          upcoming_state <= execute_save_address;     --   (Rd) <= Rs
+          when "0100" =>
+          upcoming_state <= execute_input_from_port;           -- input form port mannager goes to Rd
           when "0101" =>
-          -- optional
-          EnablePC <= '1';
-          PCplus1 <= '1';
-          next_state <= S_firstFetch;
+          upcoming_state <= execute_output_to_port;          -- out from Rs goes to portmanger
           when "0110" =>
-          -- and function
-  next_state <= S_and;
+          upcoming_state <= execute_and; -- Rd <= Rd & Rs
           when "0111" =>
-          -- or function
-    next_state <= S_or;
+          upcoming_state <= execute_or; -- Rd <= Rd | Rs
           when "1000" =>
-          -- not function
-  next_state <= S_not;
+          upcoming_state <= execute_not;  -- Rd <= ~Rs
           when "1001" =>
-          -- shift left function
-  next_state <= S_shiftleft;
+          upcoming_state <= execute_shift_left; -- Rd <=sla Rs
           when "1010" =>
-          -- shift right function
-  next_state <= S_shiftright;
+          upcoming_state <= execute_shift_right; -- Rd <= sra Rs
           when "1011" =>
-  next_state <= S_add;
+          upcoming_state <= execute_add; -- Rd <= Rd + Rs+ C
           when "1100" =>
-          -- subtract function
-          next_state <= S_subtraction;
+          upcoming_state <= execute_subtraction; -- Rd <= Rd - Rs - C
           when "1101" =>
-          -- multiply function
-  next_state <= S_multiply;
+          upcoming_state <= execute_multiply; -- Rd <= Rd * Rs 8 bit multiply
           when "1110" =>
-          -- comparision function
-  next_state <= S_comparison;
+          upcoming_state <= execute_compare; -- Rd , Rs (if equal:Z=1; if Rd<Rs :C=1)
           when "1111" =>
           -- we care about IR (9 downto 8)
-          case(IRout(9 downto 8)) is
-  when "00" =>
-            -- move immidate low
-  next_state <= S_moveImmidiateLow;
+          case(IRdataIN(9 downto 8)) is
+            when "00" =>
+            upcoming_state <= execute_move_immd_low;-- Rdl <= {8'bZ,I}
             when "01" =>
-            -- move immidate high
-            next_state <= S_moveImmidiateHigh;
-  when "10" =>
-            -- save pc
-            next_state <= S_savePC;
+            upcoming_state <= execute_move_immd_high;-- Rdl <= {I,8'bZ}
+            when "10" =>
+            upcoming_state <= execute_save_pc; -- Rd<= PC +I
             when "11" =>
-            -- jump addressed
-  next_state <= S_jumpAddress;
+            upcoming_state <= execute_jump_address; --PC <= Rd+I
             when others =>
-            next_state <= S_reset;
-end case; -- IRout(9 downto 8)
+            upcoming_state <= reseting_controller;
+          end case;
           when others =>
-          next_state <= S_reset;
-        end case; -- IRout(15 downto 12)
-  when S_updatePC =>
+          upcoming_state <= reseting_controller;
+        end case;
+        when pc_update =>
         EnablePC <= '1';
         PCplus1 <= '1';
-        next_state <= S_firstFetch;
-  when  S_noOperation =>
-        -- no operation
+        upcoming_state <= fetch_one;
+        when  execute_nothing =>
         EnablePC <= '1';
         PCplus1 <= '1';
-        next_state <= S_firstFetch;
-  when S_halt =>
-        next_state <= S_halt;
-    when  S_setZFlag =>
-      -- setting zero flag to 1 then fetch
-        Zset <= '1';
+        upcoming_state <= fetch_one;
+        when halting =>
+        upcoming_state <= halting;
+        when  execute_ZFset =>
+        ZSet <= '1';
         EnablePC <= '1';
         PCplus1 <= '1';
-        next_state <= S_firstFetch;
-        when  S_clearZflag =>
-        -- seeting zero flag to zero then fetch
+        upcoming_state <= fetch_one;
+        when  execute_ZF_clr =>
         EnablePC <= '1';
         PCplus1 <= '1';
-        Zreset <= '1';
-        next_state <= S_firstFetch;
-
-        when  S_setCarryFlag =>
-
-        Cset <= '1';
-
+        ZReset <= '1';
+        upcoming_state <= fetch_one;
+        when  execute_CFset =>
+        CSet <= '1';
         EnablePC <= '1';
-
         PCplus1 <= '1';
-
-        next_state <= S_firstFetch;
-
-        when  S_clearCarryFlag =>
-
+        upcoming_state <= fetch_one;
+        when  execute_CF_clr =>
         EnablePC <= '1';
-
         PCplus1 <= '1';
-
-        Creset <= '1';
-
-        next_state <= S_firstFetch;
-
-        when  S_clearWindowPointer =>
-
+        CReset <= '1';
+        upcoming_state <= fetch_one;
+        when  execute_WP_clr =>
         WPreset <= '1';
-
         EnablePC <= '1';
-
         PCplus1 <= '1';
-
-        next_state <= S_firstFetch;
-
-        when  S_moveRegister =>
-
-        funcSelect <= "1010";
-
-        ALUOut_on_DataBus <= '1';
-
+        upcoming_state <= fetch_one;
+        when  execute_move_register =>
+        opcode <= "1010";
+        ALUout_on_Databus <= '1';
         RFLwrite <= '1';
-
         RFHwrite <= '1';
-
         EnablePC <= '1';
-
         PCplus1 <= '1';
-
-        next_state <= S_firstFetch;
-
-        when  S_loadAddress =>
-
-        Rs_on_AdressUnitRside <= '1'; --TO DO
-
-        R0plus0 <= '1';
-
-        next_state <= S_loadAddress2;
-
-        when S_loadAddress2 =>
-
+        upcoming_state <= fetch_one;
+        when  execute_load_address =>
+        Rs_on_AddressUnitRSide <= '1'; --TO DO
+        Rplus0 <= '1';
+        upcoming_state <= execute_load_address_two;
+        when execute_load_address_two =>
         ReadMem <= '1';
-
         RFHwrite <= '1';
-
         RFLwrite <= '1';
-
-        next_state <= S_updatePC;
-
-        when  S_storeAdress =>
-
-        funcSelect <= "1010";
-
-        ALUOut_on_DataBus <= '1';
-
-        Rd_on_AdressUnitRside <= '1';
-
-        R0plus0 <= '1';
-
+        upcoming_state <= pc_update;
+        when  execute_save_address =>
+        opcode <= "1010";
+        ALUout_on_Databus <= '1';
+        Rd_on_AddressUnitRSide <= '1';
+        Rplus0 <= '1';
         WriteMem <= '1';
-
-        next_state <= S_updatePC;
-
-        when  S_and =>
-
-        funcSelect <= "0001";
-
-        ALUOut_on_DataBus <= '1';
+        upcoming_state <= pc_update;
+        when execute_input_from_port =>
+           PortNumber <="110011";
+           ReadPort<='1';
+           upcoming_state <= pc_update;
+           when execute_output_to_port =>
+              PortNumber <="110011";
+              WritePort<='1';
+              upcoming_state <= pc_update;
+        when  execute_and =>
+        opcode <= "0001";
+        ALUout_on_Databus <= '1';
         RFLwrite <= '1';
         RFHwrite <= '1';
         EnablePC <= '1';
         PCplus1 <= '1';
-        next_state <= S_firstFetch;
-
-        when  S_or =>
-
-        funcSelect <= "0011";
-
-        ALUOut_on_DataBus <= '1';
-
+        upcoming_state <= fetch_one;
+        when  execute_or =>
+        opcode <= "0011";
+        ALUout_on_Databus <= '1';
         RFLwrite <= '1';
-
         RFHwrite <= '1';
-
         EnablePC <= '1';
-
         PCplus1 <= '1';
-
-        next_state <= S_firstFetch;
-
-        when  S_not =>
-
-        funcSelect <= "1011";
-
-        ALUOut_on_DataBus <= '1';
-
+        upcoming_state <= fetch_one;
+        when  execute_not =>
+        opcode <= "1011";
+        ALUout_on_Databus <= '1';
         RFLwrite <= '1';
-
         RFHwrite <= '1';
-
         EnablePC <= '1';
-
         PCplus1 <= '1';
-
-        next_state <= S_firstFetch;
-
-        when  S_shiftleft =>
-
-        funcSelect <= "0101";
-
-        ALUOut_on_DataBus <= '1';
-
+        upcoming_state <= fetch_one;
+        when  execute_shift_left =>
+        opcode <= "0101";
+        ALUout_on_Databus <= '1';
         RFLwrite <= '1';
-
         RFHwrite <= '1';
-
         EnablePC <= '1';
-
         PCplus1 <= '1';
-
-        next_state <= S_firstFetch;
-
-        when  S_shiftright =>
-
-        funcSelect <= "0110";
-
-        ALUOut_on_DataBus <= '1';
-
+        upcoming_state <= fetch_one;
+        when  execute_shift_right =>
+        opcode <= "0110";
+        ALUout_on_Databus <= '1';
         RFLwrite <= '1';
-
         RFHwrite <= '1';
-
         EnablePC <= '1';
-
         PCplus1 <= '1';
-
-        next_state <= S_firstFetch;
-
-        when  S_add =>
-
-        funcSelect <= "0000";
-
+        upcoming_state <= fetch_one;
+        when  execute_add =>
+        opcode <= "0000";
         SRload <= '1';
-
-        ALUOut_on_DataBus <= '1';
-
+        ALUout_on_Databus <= '1';
         RFLwrite <= '1';
-
         RFHwrite <= '1';
-
         EnablePC <= '1';
-
         PCplus1 <= '1';
-
-        next_state <= S_firstFetch;
-
-        when  S_subtraction =>
-
-        funcSelect <= "0111";
-
+        upcoming_state <= fetch_one;
+        when  execute_subtraction =>
+        opcode <= "0111";
         SRload <= '1';
-
-        ALUOut_on_DataBus <= '1';
-
+        ALUout_on_Databus <= '1';
         RFLwrite <= '1';
-
         RFHwrite <= '1';
-
         EnablePC <= '1';
-
         PCplus1 <= '1';
-
-        next_state <= S_firstFetch;
-
-        when  S_multiply =>
-
-        funcSelect <= "1001";
-
+        upcoming_state <= fetch_one;
+        when  execute_multiply =>
+        opcode <= "1001";
         SRload <= '1';
-
-        ALUOut_on_DataBus <= '1';
-
+        ALUout_on_Databus <= '1';
         RFLwrite <= '1';
-
         RFHwrite <= '1';
-
         EnablePC <= '1';
-
         PCplus1 <= '1';
-
-        next_state <= S_firstFetch;
-
-        when  S_comparison =>
-
-        funcSelect <= "0010";
-
+        upcoming_state <= fetch_one;
+        when  execute_compare =>
+        opcode <= "0010";
         RFLwrite <= '1';
-
         RFHwrite <= '1';
-
         EnablePC <= '1';
-
         PCplus1 <= '1';
-
-        next_state <= S_firstFetch;
-
-        when  S_moveImmidiateLow =>
-
-        R0plusI <= '1';
-
-        Adress_on_DataBus <= '1';
-
+        upcoming_state <= fetch_one;
+        when  execute_move_immd_low =>
+        RplusI <= '1';
+        Address_on_Databus <= '1';
         RFLwrite <= '1';
-
-        next_state <= S_updatePC;
-
-        when  S_moveImmidiateHigh =>
-
-        R0plusI <= '1';
-
-        Adress_on_DataBus <= '1';
-
+        upcoming_state <= pc_update;
+        when  execute_move_immd_high =>
+        RplusI <= '1';
+        Address_on_Databus <= '1';
         RFHwrite <= '1';
-
-        next_state <= S_updatePC;
-
-        when  S_savePC =>
-
+        upcoming_state <= pc_update;
+        when  execute_save_pc =>
         PCplusI <= '1';
-
-        Adress_on_DataBus <= '1';
-
+        Address_on_Databus <= '1';
         RFHwrite <= '1';
-
         RFLwrite <= '1';
-
-        next_state <= S_updatePC;
-
-        when  S_jumpAddress =>
-
+        upcoming_state <= pc_update;
+        when  execute_jump_address =>
         Rd_on_AdressUnitRSide <= '1';
-
-        R0plusI <= '1';
-
+        RplusI <= '1';
         EnablePC <= '1';
-
-        next_state <= S_firstFetch;
-
-        when  S_jumpRelative =>
-
+        upcoming_state <= fetch_one;
+        when  execute_jump_relative =>
         EnablePC <= '1';
-
         PCplusI <='1';
-
-        next_state <= S_firstFetch;
-
-        when  S_brachIfZero =>
-
+        upcoming_state <= fetch_one;
+        when  execute_branch_if_zero =>
         EnablePC <= '1';
-
         if (Zin = '1' ) then
-
           PCplusI <= '1';
-
         else
-
           PCplus1 <= '1';
-
         end if;
-
-        next_state <= S_firstFetch;
-
-        when   S_brachIfCarry =>
-
+        upcoming_state <= fetch_one;
+        when   execute_branch_if_carry =>
         EnablePC <= '1';
-
         if (Cin  = '1' ) then
-
           PCplusI <= '1';
-
         else
-
           PCplus1 <= '1';
         end if;
-        next_state <= S_firstFetch;
-        when  S_addWindowPointer =>
+        upcoming_state <= fetch_one;
+        when  execute_add_WP =>
         WPadd <= '1';
         EnablePC <= '1';
         PCplus1 <= '1';
-        next_state <= S_firstFetch;
+        upcoming_state <= fetch_one;
         when others =>
-        next_state <= S_reset;
-      end case; --next_state
+        upcoming_state <= reseting_controller;
+      end case; 
     end process;
-  end architecture;
+  end description_controller;

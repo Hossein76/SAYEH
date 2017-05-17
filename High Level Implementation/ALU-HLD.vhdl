@@ -3,12 +3,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_signed.all;
 use ieee.std_logic_arith.all;
 
-entity ALU is  port (Rs : in std_logic_vector(15 downto 0); ---source Register
+entity ALU is  port (
+clk : in std_logic ;
+Rs : in std_logic_vector(15 downto 0); ---source Register
 Rd : in std_logic_vector(15 downto 0);--- destination register
 carryFlagIn : in std_logic;   --- we get the carry
 opcode : in std_logic_vector(3 downto 0); --- we get the opcode to know what to do
 Result : out std_logic_vector(15 downto 0);  ---- result of alu
-clk : in std_logic ;
 carryFlagOut : out std_logic; ----- we set the carry
 zeroFlag : out std_logic);  ----- we set the zero flag
 end  ALU;

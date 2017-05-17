@@ -4,9 +4,9 @@ use ieee.numeric_std.all;
 ---------------
 entity register_file is
   port(
+  clk: in std_logic;
   data_in : in std_logic_vector(15 downto 0);
   window_pointer : in std_logic_vector(5 downto 0);
-  clk: in std_logic;
   selector : in std_logic_vector(3 downto 0);
   RFLwrite,RFHwrite : in std_logic;
   Rs,  Rd : out std_logic_vector(15 downto 0)
