@@ -228,7 +228,7 @@ architecture description_controller of controller is
         PCplus1 <= '1';
         upcoming_state <= fetch_one;
         when  execute_move_register =>
-        opcode <= "1010";
+        opcode <= "1101";
         ALUout_on_Databus <= '1';
         RFLwrite <= '1';
         RFHwrite <= '1';
@@ -236,7 +236,7 @@ architecture description_controller of controller is
         PCplus1 <= '1';
         upcoming_state <= fetch_one;
         when  execute_load_address =>
-        Rs_on_AddressUnitRSide <= '1'; --TO DO
+        Rs_on_AddressUnitRSide <= '1'; 
         Rplus0 <= '1';
         upcoming_state <= execute_load_address_two;
         when execute_load_address_two =>
@@ -245,7 +245,7 @@ architecture description_controller of controller is
         RFLwrite <= '1';
         upcoming_state <= pc_update;
         when  execute_save_address =>
-        opcode <= "1010";
+        opcode <= "1101";
         ALUout_on_Databus <= '1';
         Rd_on_AddressUnitRSide <= '1';
         Rplus0 <= '1';
@@ -260,7 +260,7 @@ architecture description_controller of controller is
               WritePort<='1';
               upcoming_state <= pc_update;
         when  execute_and =>
-        opcode <= "0001";
+        opcode <= "0000";
         ALUout_on_Databus <= '1';
         RFLwrite <= '1';
         RFHwrite <= '1';
@@ -268,7 +268,7 @@ architecture description_controller of controller is
         PCplus1 <= '1';
         upcoming_state <= fetch_one;
         when  execute_or =>
-        opcode <= "0011";
+        opcode <= "0001";
         ALUout_on_Databus <= '1';
         RFLwrite <= '1';
         RFHwrite <= '1';
@@ -276,7 +276,7 @@ architecture description_controller of controller is
         PCplus1 <= '1';
         upcoming_state <= fetch_one;
         when  execute_not =>
-        opcode <= "1011";
+        opcode <= "1110";
         ALUout_on_Databus <= '1';
         RFLwrite <= '1';
         RFHwrite <= '1';
@@ -284,7 +284,7 @@ architecture description_controller of controller is
         PCplus1 <= '1';
         upcoming_state <= fetch_one;
         when  execute_shift_left =>
-        opcode <= "0101";
+        opcode <= "1001";
         ALUout_on_Databus <= '1';
         RFLwrite <= '1';
         RFHwrite <= '1';
@@ -292,7 +292,7 @@ architecture description_controller of controller is
         PCplus1 <= '1';
         upcoming_state <= fetch_one;
         when  execute_shift_right =>
-        opcode <= "0110";
+        opcode <= "1000";
         ALUout_on_Databus <= '1';
         RFLwrite <= '1';
         RFHwrite <= '1';
@@ -300,7 +300,7 @@ architecture description_controller of controller is
         PCplus1 <= '1';
         upcoming_state <= fetch_one;
         when  execute_add =>
-        opcode <= "0000";
+        opcode <= "0100";
         SRload <= '1';
         ALUout_on_Databus <= '1';
         RFLwrite <= '1';
@@ -309,7 +309,7 @@ architecture description_controller of controller is
         PCplus1 <= '1';
         upcoming_state <= fetch_one;
         when  execute_subtraction =>
-        opcode <= "0111";
+        opcode <= "0101";
         SRload <= '1';
         ALUout_on_Databus <= '1';
         RFLwrite <= '1';
@@ -318,7 +318,7 @@ architecture description_controller of controller is
         PCplus1 <= '1';
         upcoming_state <= fetch_one;
         when  execute_multiply =>
-        opcode <= "1001";
+        opcode <= "0110";
         SRload <= '1';
         ALUout_on_Databus <= '1';
         RFLwrite <= '1';
@@ -381,6 +381,6 @@ architecture description_controller of controller is
         upcoming_state <= fetch_one;
         when others =>
         upcoming_state <= reseting_controller;
-      end case; 
+      end case;
     end process;
   end description_controller;

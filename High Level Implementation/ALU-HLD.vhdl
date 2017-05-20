@@ -48,7 +48,8 @@ architecture description_ALU of ALU is
               out_data    => rand_temp );
 
     process (Rd, Rs, opcode, carryFlagIn)
-
+          variable loop_temp : std_logic_vector(15 downto 0);
+          loop_temp := x"F0";
     begin
       if opcode = "0000" then  -- and component
       Result <= Rd and Rs;
@@ -124,9 +125,23 @@ end if ;
 
 elsif opcode = "0111" then ----- division_component
 
+
+for I in 1 to to_integer(unsigned("1111111111111111")) loop
+    if to_integer(unsigned(Rs))=to_integer(unsigned(Rd(7 downto 0))*unsigned(loop_temp)) then
+     exit ;
+   elsif to_integer(unsigned(Rs))>to_integer(unsigned(Rd(7 downto 0))*unsigned(loop_temp))then
+             loop_temp := loop_temp+"0000000000000001";
+    elsif to_integer(unsigned(Rs))<to_integer(unsigned(Rd(7 downto 0))*unsigned(loop_temp)) then
+            loop_temp := loop_temp-"0000000000000001";
+          end if;
+
+end loop;
+
+
+
 carryFlagOut <= '0';
-Result<=  Rs/ Rd(7 DOWNTO 0);
-if  Rs/Rd(7 DOWNTO 0)=x"F0" then
+Result<=  loop_temp;
+if  loop_temp=x"F0" then
   zeroFlag <='1';
 else
   zeroFlag<= '0';
@@ -160,8 +175,7 @@ carryFlagOut <= '0';
 zeroFlag <='0';
 elsif opcode = "1011" then ----- random generator component
 
-----to be completed
-Result<= x"F0";
+Result<=rand_temp(63 downto 48);
 carryFlagOut <= '0';
 zeroFlag <='0';
 elsif opcode = "1100" then ----- Trigonometry component
@@ -171,6 +185,26 @@ Result<= x"F0";
 carryFlagOut <= '0';
 zeroFlag <='0';
 
+
+elsif opcode = "1101" then ----- RS
+
+Result<= Rs;
+carryFlagOut <= '0';
+if  Rs=x"F0" then
+  zeroFlag <='1';
+else
+  zeroFlag<= '0';
+end if ;
+elsif opcode = "1110" then ----- not RS
+
+----to be completed
+Result<= ~Rs;
+carryFlagOut <= '0';
+if  Rs=x"F0" then
+  zeroFlag <='1';
+else
+  zeroFlag<= '0';
+end if ;
 else
 
   Result<= x"F0";
@@ -178,6 +212,7 @@ else
   zeroFlag <='0';
 
 end if ;
+
 
 
 end process;
