@@ -9,7 +9,7 @@ ENTITY PROGRAM_COUNTER IS
         EnablePC : IN std_logic;
         input: IN std_logic_vector (15 DOWNTO 0);
         clk : IN std_logic;
-        output: OUT std_logic_vector (15 DOWNTO 0) := "0000000000000000"
+        output: OUT std_logic_vector (15 DOWNTO 0) := x"0000"
     );
 END PROGRAM_COUNTER;
 

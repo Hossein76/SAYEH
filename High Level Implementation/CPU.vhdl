@@ -62,7 +62,7 @@ architecture description_cpu of  cpu is
 
 begin
 
-  controller_unit : controller port map(clk,External_Reset,MemDataReady,dpu_Cout,dpu_Zout,dpu_IR_output_to_controller,cu_ResetPC , cu_PCplusI , cu_PCplus1, cu_RplusI , cu_Rplus0  , cu_EnablePC,
+  controller_unit : controller port map(clk,External_Reset,MemDataReady,dpu_Cout,dpu_Zout,dpu_IRdataOUT,cu_ResetPC , cu_PCplusI , cu_PCplus1, cu_RplusI , cu_Rplus0  , cu_EnablePC,
   cu_CSet , cu_CReset , cu_ZSet, cu_ZReset , cu_SRload,cu_IRload, cu_opcode,cu_RFLwrite , cu_RFHwrite,cu_WPadd , cu_WPreset,cu_Address_on_Databus , cu_ALUout_on_Databus , cu_Rs_on_AddressUnitRSide , cu_Rd_on_AddressUnitRSide,open,open,open,cu_ReadMem,cu_WriteMem);
 
   datapath_unit : data_path port map (clk,dpu_Zout,dpu_Cout,dpu_IRdataOUT,  cu_ResetPC , cu_PCplusI , cu_PCplus1, cu_RplusI , cu_Rplus0  , cu_EnablePC ,  cu_CSet , cu_CReset , cu_ZSet, cu_ZReset , cu_SRload ,cu_IRload ,cu_opcode ,cu_RFLwrite , cu_RFHwrite,cu_WPadd , cu_WPreset ,cu_Address_on_Databus , cu_ALUout_on_Databus , cu_Rs_on_AddressUnitRSide , cu_Rd_on_AddressUnitRSide ,"000000" ,'0','0',cu_ReadMem,cu_WriteMem,memory_data_input ,dpu_data_to_memory ,dpu_addressing_unit_output );

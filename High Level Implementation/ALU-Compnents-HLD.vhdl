@@ -15,16 +15,24 @@ END and_component;
 ARCHITECTURE description_and_component OF and_component IS
 
 BEGIN
+process (Rs,Rd,carryFlagIn)
+ begin
 Result <= Rd and Rs;
 carryFlagOut <= '0';
-if Rd and Rs=x"F0" then
+if( Rd and Rs)=x"F0" then
   zeroFlag <='1';
-else
+ else
   zeroFlag<= '0';
-end if ;
+end if;
+end process;
 END description_and_component;
 
 ---------------------
+LIBRARY ieee;
+USE ieee.std_logic_1164.ALL;
+USE ieee.std_logic_arith.ALL;
+USE ieee.std_logic_unsigned.ALL;
+
 
 ENTITY or_component IS PORT(
 Rs   : IN STD_LOGIC_VECTOR(15 DOWNTO 0);  -- Source Register
@@ -38,15 +46,24 @@ END or_component;
 ARCHITECTURE description_or_component OF or_component IS
 
 BEGIN
+process(Rs,Rd,carryFlagIn) begin
+
 Result <= Rd or Rs;
 carryFlagOut <= '0';
-if Rd or Rs=x"F0" then
+if (Rd or Rs)=x"F0" then
   zeroFlag <='1';
 else
   zeroFlag<= '0';
 end if ;
+end process;
+
 END description_or_component;
 ----------------------------
+LIBRARY ieee;
+USE ieee.std_logic_1164.ALL;
+USE ieee.std_logic_arith.ALL;
+USE ieee.std_logic_unsigned.ALL;
+
 
 ENTITY rshift_component IS PORT(
 Rs   : IN STD_LOGIC_VECTOR(15 DOWNTO 0);  -- Source Register
@@ -60,6 +77,8 @@ END rshift_component;
 ARCHITECTURE description_rshift_component OF rshift_component IS
 
 BEGIN
+process(Rs,Rd,carryFlagIn) begin
+
 carryFlagOut <= '0';
 Result <=  Rs(0) & Rs(15 DOWNTO 1) ;
 if  Rs=x"F0" then
@@ -67,22 +86,32 @@ if  Rs=x"F0" then
 else
   zeroFlag<= '0';
 end if ;
+end process;
+
 END description_rshift_component;
 
 ---------------------------
+
+
+LIBRARY ieee;
+USE ieee.std_logic_1164.ALL;
+USE ieee.std_logic_arith.ALL;
+USE ieee.std_logic_unsigned.ALL;
 ENTITY lshift_component IS PORT(
 Rs   : IN STD_LOGIC_VECTOR(15 DOWNTO 0);  -- Source Register
 Rd   : IN STD_LOGIC_VECTOR(15 DOWNTO 0) ; -- Destination Register
 carryFlagIn : in std_logic;   --- we get the carry
 Result : out std_logic_vector(15 downto 0);  ---- result of alu
 carryFlagOut : out std_logic; ----- we set the carry
-zeroFlag : out std_logic);  ----- we set the zero flag
+zeroFlag : out std_logic ----- we set the zero flag
 );
 END lshift_component;
 
 ARCHITECTURE description_lshift_component OF lshift_component IS
 
 BEGIN
+process(Rs,Rd,carryFlagIn) begin
+
 carryFlagOut <= '0';
 Result <= Rs(14 DOWNTO 0) & Rs(15) ;
 if  Rs=x"F0" then
@@ -90,8 +119,15 @@ if  Rs=x"F0" then
 else
   zeroFlag<= '0';
 end if ;
+end process;
+
 END description_lshift_component;
 ---------------------------
+LIBRARY ieee;
+USE ieee.std_logic_1164.ALL;
+USE ieee.std_logic_arith.ALL;
+USE ieee.std_logic_unsigned.ALL;
+use ieee.numeric_std.all;
 
 ---------------------------
 ENTITY comparison_component IS PORT(
@@ -107,22 +143,25 @@ ARCHITECTURE description_comparison_component OF comparison_component IS
 BEGIN
 process(Rd,carryFlagIn,Rs)
 begin
-  if to_integer(Rd) < to_integer(Rs) then
+  if (Rd) < (Rs) then
     zeroFlag <= '0';
-    carryFlag <= '1';
+    carryFlagOut <= '1';
 
   elsif Rs=Rd then
     zeroFlag <= '1';
-    carryFlag <= '0';
+    carryFlagOut <= '0';
   else
     zeroFlag <= '0';
-    carryFlag <= '0';
+    carryFlagOut <= '0';
   end if;
   Result <= x"F0";
 end process;
 END description_comparison_component;
 ---------------------------
-
+LIBRARY ieee;
+USE ieee.std_logic_1164.ALL;
+USE ieee.std_logic_arith.ALL;
+USE ieee.std_logic_unsigned.ALL;
 entity addition_component is
   port (
   Rs   : IN STD_LOGIC_VECTOR(15 DOWNTO 0);  -- Source Register
@@ -140,6 +179,8 @@ architecture description_addition_component of addition_component is
   signal Rs_temp :  std_logic_vector(16 downto 0);
   signal Rd_temp :  std_logic_vector(16 downto 0);
   BEGIN
+  process(Rs,Rd,carryFlagIn) begin
+
   Rd_temp(15 downto 0)<= Rd;
   Rs_temp(15 downto 0)<= Rs;
   Rs_temp(16)<= '0';
@@ -154,12 +195,16 @@ architecture description_addition_component of addition_component is
     zeroFlag<= '0';
   end if ;
 
+end process;
 
 end description_addition_component;
 -------------------------------
 
 ---------------------------------
-
+LIBRARY ieee;
+USE ieee.std_logic_1164.ALL;
+USE ieee.std_logic_arith.ALL;
+USE ieee.std_logic_unsigned.ALL;
 ENTITY subtraction_component IS PORT(
 Rs   : IN STD_LOGIC_VECTOR(15 DOWNTO 0);  -- Source Register
 Rd   : IN STD_LOGIC_VECTOR(15 DOWNTO 0) ; -- Destination Register
@@ -174,6 +219,7 @@ signal result : std_logic_vector(16 downto 0);
 signal Rs_temp :  std_logic_vector(16 downto 0);
 signal Rd_temp :  std_logic_vector(16 downto 0);
 BEGIN
+process(Rs,Rd,carryFlagIn) begin
 
 Rd_temp(15 downto 0)<= Rd;
 Rs_temp(15 downto 0)<= Rs;
@@ -187,9 +233,18 @@ if result(15 downto 0)=x"F0" then
 else
   zeroFlag<= '0';
 end if ;
+end process;
 
 END description_subtraction_component;
 --------------------------------------------
+LIBRARY ieee;
+USE ieee.std_logic_1164.ALL;
+USE ieee.std_logic_arith.ALL;
+USE ieee.std_logic_unsigned.ALL;
+
+
+
+
 ENTITY xor_component IS PORT(
 Rs   : IN STD_LOGIC_VECTOR(15 DOWNTO 0);  -- Source Register
 Rd   : IN STD_LOGIC_VECTOR(15 DOWNTO 0) ; -- Destination Register
@@ -201,6 +256,8 @@ END xor_component;
 
 ARCHITECTURE description_xor_component OF xor_component IS
 BEGIN
+process(Rs,Rd,carryFlagIn) begin
+
 Result <= Rd xor Rs;
 carryFlagOut <= '0';
 if Rd xor Rs=x"F0" then
@@ -208,8 +265,16 @@ if Rd xor Rs=x"F0" then
 else
   zeroFlag<= '0';
 end if ;
+end process;
+
 END description_xor_component;
 --------------------------------------------
+
+
+LIBRARY ieee;
+USE ieee.std_logic_1164.ALL;
+USE ieee.std_logic_arith.ALL;
+USE ieee.std_logic_unsigned.ALL;
 ENTITY second_complement_component IS PORT(
 Rs   : IN STD_LOGIC_VECTOR(15 DOWNTO 0);  -- Source Register
 Rd   : IN STD_LOGIC_VECTOR(15 DOWNTO 0) ; -- Destination Register
@@ -221,6 +286,8 @@ END second_complement_component;
 
 ARCHITECTURE description_second_complement_component OF second_complement_component IS
 BEGIN
+process(Rs,Rd,carryFlagIn) begin
+
 Result <=((not Rs)+'1');
 carryFlagOut <= '0';
 if ((not Rs)+'1')=x"F0" then
@@ -228,9 +295,14 @@ if ((not Rs)+'1')=x"F0" then
 else
   zeroFlag<= '0';
 end if ;
+end process;
+
 END description_second_complement_component;
 ----------------------------
-
+LIBRARY ieee;
+USE ieee.std_logic_1164.ALL;
+USE ieee.std_logic_arith.ALL;
+USE ieee.std_logic_unsigned.ALL;
 --------------------------------------------
 ENTITY multiplication_component IS PORT(
 Rs   : IN STD_LOGIC_VECTOR(15 DOWNTO 0);  -- Source Register
@@ -243,6 +315,8 @@ END multiplication_component;
 
 ARCHITECTURE description_multiplication_component OF multiplication_component IS
 BEGIN
+process(Rs,Rd,carryFlagIn) begin
+
 carryFlagOut <= '0';
 Result<=  Rs(7 DOWNTO 0) * Rd(7 DOWNTO 0);
 if  Rs(7 DOWNTO 0) * Rd(7 DOWNTO 0)=x"F0" then
@@ -250,8 +324,15 @@ if  Rs(7 DOWNTO 0) * Rd(7 DOWNTO 0)=x"F0" then
 else
   zeroFlag<= '0';
 end if ;
+end process;
 END description_multiplication_component;
 ----------------------------
+
+LIBRARY ieee;
+USE ieee.std_logic_1164.ALL;
+USE ieee.std_logic_arith.ALL;
+USE ieee.std_logic_unsigned.ALL;
+
 ENTITY division_component IS PORT(
 Rs   : IN STD_LOGIC_VECTOR(15 DOWNTO 0);  -- Source Register
 Rd   : IN STD_LOGIC_VECTOR(15 DOWNTO 0) ; -- Destination Register
@@ -311,7 +392,10 @@ END description_division_component;
 
 
 --------------------------------
-
+LIBRARY ieee;
+USE ieee.std_logic_1164.ALL;
+USE ieee.std_logic_arith.ALL;
+USE ieee.std_logic_unsigned.ALL;
 
 entity rand_component is
   generic (

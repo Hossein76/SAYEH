@@ -86,12 +86,12 @@ architecture description_controller of controller is
       WPadd <='0';
       WPreset <='0';
       IRload <='0';
-      opcode <= x"F0";
+      opcode <= "0000";
       Address_on_Databus <='0';
       ALUout_on_Databus	 <='0';
       Rs_on_AddressUnitRSide <='0';
       Rd_on_AddressUnitRSide <='0';
-      PortNumber <= x"F0";
+      PortNumber <= "000000";
       ReadPort <= '0';
       WritePort<='0';
       ReadMem  <='0';
@@ -236,7 +236,7 @@ architecture description_controller of controller is
         PCplus1 <= '1';
         upcoming_state <= fetch_one;
         when  execute_load_address =>
-        Rs_on_AddressUnitRSide <= '1'; 
+        Rs_on_AddressUnitRSide <= '1';
         Rplus0 <= '1';
         upcoming_state <= execute_load_address_two;
         when execute_load_address_two =>
@@ -350,7 +350,7 @@ architecture description_controller of controller is
         RFLwrite <= '1';
         upcoming_state <= pc_update;
         when  execute_jump_address =>
-        Rd_on_AdressUnitRSide <= '1';
+        Rd_on_AddressUnitRSide <= '1';
         RplusI <= '1';
         EnablePC <= '1';
         upcoming_state <= fetch_one;

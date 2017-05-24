@@ -90,20 +90,20 @@ begin
   addressing_unit : ADDRESS_UNIT port map (au_RSide , IRout(7 downto 0) , addressing_unit_out , clk, ResetPC, PCplusI, PCplus1 ,RplusI, Rplus0, EnablePC);
   registerFile : register_file port map (clk,Databus,window_pointer_signal,IRout (11 downto 8),RFLwrite,RFHwrite,register_file_right , register_file_left);
   IR_register : instruction_register port map (clk , IRload , DataBus , IRout);
-  windowPointer_register : window_pointer port map (clk,IRout (5 downto 0) , clk , WPadd , WPreset , window_pointer_signal);
+  windowPointer_register : window_pointer port map (clk,IRout (5 downto 0)  , WPadd , WPreset , window_pointer_signal);
   flags_register : flags port map (clk, alu_zout,alu_cout,CSet , CReset , ZSet, ZReset , SRload, flags_register_cout , flags_register_zout);
   arithmetic_logic_unit : ALU port map (clk,register_file_left , register_file_right ,  flags_register_cout , opcode ,alu_out, alu_cout , alu_zout );
 
   databus <= memory_data_in when ReadMem = '1' else alu_out when ALUout_on_Databus = '1'
-else addressing_unit_out when Address_on_Databus = '1' else open;
+else addressing_unit_out when Address_on_Databus = '1' else "ZZZZZZZZZZZZZZZZ";
 
 au_RSide <= register_file_right when Rs_on_AddressUnitRSide = '1'
-else register_file_left when Rd_on_AddressUnitRSide = '1' else x"F0";
+else register_file_left when Rd_on_AddressUnitRSide = '1' else x"0000";
 
 Cout <= flags_register_cout;
 Zout <= flags_register_zout;
 
-data_to_memory <= Databus when WriteMem = '1' else open ;
+data_to_memory <= Databus when WriteMem = '1' else "ZZZZZZZZZZZZZZZZ" ;
 addressing_unit_output <= addressing_unit_out;
 IRdataOUT <= IRout;
 end description_data_path;

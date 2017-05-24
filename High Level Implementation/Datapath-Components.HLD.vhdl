@@ -20,6 +20,11 @@ begin
 end process;
 END description_instruction_register;
 ----------------------------------
+
+LIBRARY ieee;
+USE ieee.std_logic_1164.ALL;
+USE ieee.std_logic_arith.ALL;
+USE ieee.std_logic_unsigned.ALL;
 ENTITY window_pointer IS PORT(
 clk : in std_logic;
 wp_in : in std_logic_vector(5 downto 0);
@@ -29,20 +34,26 @@ wp_out : out std_logic_vector(5 downto 0)
 END window_pointer;
 
 ARCHITECTURE description_window_pointer OF window_pointer IS
-singal temp : std_logic_vector(5 downto 0);
+    signal temp : std_logic_vector(5 downto 0);
 BEGIN
 process(clk)
 begin
   if rising_edge(clk)then
     if(WPreset = '1') then
-      temp <= x"F0";
+      temp <= "000000";
     elsif(WPadd = '1') then
       temp <= temp + wp_in;
     end if;
   end if;
 end process;
+wp_out <= temp;
 END description_window_pointer;
 -----------------------------------------
+LIBRARY ieee;
+USE ieee.std_logic_1164.ALL;
+USE ieee.std_logic_arith.ALL;
+USE ieee.std_logic_unsigned.ALL;
+
 
 ENTITY flags IS PORT(
 clk : IN STD_LOGIC; -- clock.
