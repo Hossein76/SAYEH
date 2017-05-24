@@ -108,7 +108,6 @@ architecture description_controller of controller is
         when fetch_one =>
         -- fist fetch data
         ReadMem <= '1';
-        IRLoad <= '1';
         upcoming_state <= fetch_two;
         when fetch_two =>
         -- second fetch data
@@ -238,6 +237,7 @@ architecture description_controller of controller is
         when  execute_load_address =>
         Rs_on_AddressUnitRSide <= '1';
         Rplus0 <= '1';
+        ReadMem <= '1';
         upcoming_state <= execute_load_address_two;
         when execute_load_address_two =>
         ReadMem <= '1';

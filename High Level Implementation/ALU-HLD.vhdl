@@ -17,7 +17,7 @@ end  ALU;
 architecture description_ALU of ALU is
   signal rand_temp :  std_logic_vector(63 downto 0);
   signal div_temp :  std_logic_vector(15 downto 0);
-
+  signal trigger_temp : std_logic := '0';
   component  rand_component is
     generic (
     init_seed:  std_logic_vector(127 downto 0) );
@@ -32,7 +32,8 @@ architecture description_ALU of ALU is
   end component rand_component;
 
     component  Div is
-      Port ( Rs   : in  STD_LOGIC_VECTOR (15 downto 0);
+      Port (trigger : in std_logic;
+       Rs   : in  STD_LOGIC_VECTOR (15 downto 0);
       Rd   : in  STD_LOGIC_VECTOR (15 downto 0);
       Result   : out  STD_LOGIC_VECTOR (15 downto 0));
     end component Div;
@@ -52,7 +53,7 @@ architecture description_ALU of ALU is
     out_valid   => open,
     out_data    => rand_temp );
     dividor : Div
-    port map (  Rs => Rs,
+    port map ( trigger => trigger_temp,  Rs => Rs,
        Rd=>Rd,
        Result => div_temp
     );
@@ -139,7 +140,7 @@ else
 end if ;
 
 elsif opcode = "0111" then ----- division_component
-
+trigger_temp<= '1';
 carryFlagOut <= '0';
 Result<=  div_temp;
 if  div_temp=x"0000" then
@@ -147,7 +148,7 @@ if  div_temp=x"0000" then
 else
   zeroFlag<= '0';
 end if ;
-
+trigger_temp<='0';
 elsif opcode = "1000" then ----- right_shift_component
 
 carryFlagOut <= '0';
@@ -326,7 +327,8 @@ architecture description_rand_component of rand_component is
 
 
         entity Div is
-          Port ( Rs   : in  STD_LOGIC_VECTOR (15 downto 0);
+          Port ( trigger : in std_logic;
+           Rs   : in  STD_LOGIC_VECTOR (15 downto 0);
           Rd   : in  STD_LOGIC_VECTOR (15 downto 0);
           Result   : out  STD_LOGIC_VECTOR (15 downto 0));
         end Div;
@@ -334,7 +336,7 @@ architecture description_rand_component of rand_component is
 
         architecture Behavioral_div of Div is
           begin
-              process (Rs, Rd) 
+              process (trigger,Rs, Rd)
               variable cnt  : std_logic_vector(15 downto 0);
               variable Rs_temp : std_logic_vector(15 downto 0);
               variable Rd_temp : std_logic_vector(15 downto 0);
@@ -343,10 +345,12 @@ architecture description_rand_component of rand_component is
                 Rd_temp(7 downto 0):= Rd(7 downto 0);
                 cnt   := x"0000";
                 Rs_temp :=Rs;
+                if trigger ='1'then
                 while (Rs_temp >= Rd_temp) loop
                   Rs_temp := (Rs_temp - Rd_temp);
                   cnt   := cnt + '1';
                 end loop;
+              end if;
                 Result <= cnt;
               end process;
 

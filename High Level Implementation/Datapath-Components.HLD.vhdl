@@ -71,11 +71,13 @@ begin
     if (SRload = '1') then
       Cout <= Cin;
       Zout <= Zin;
-    elsif (ZReset = '1') then
+    end if;
+    if (ZReset = '1') then
       Zout <= '0';
     elsif (ZSet = '1') then
       Zout <= '1';
-    elsif (CSet = '1') then
+    end if;
+    if (CSet = '1') then
       Cout <= '1';
     elsif (CReset = '1') then
       Cout <= '0';
