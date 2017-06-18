@@ -13,7 +13,6 @@ end miss_hit_logic;
 architecture description_miss_hit_logic of miss_hit_logic is
 
   begin
-
     process (tag,w0,w1)
     begin
     if (w0(3 downto 0)=tag) and w0(4)='1' then
