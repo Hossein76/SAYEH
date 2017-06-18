@@ -50,16 +50,16 @@ begin
 	begin
 		if init = true then
 			-- some initiation
-			buffermem(0) := "0000011100000011";
-			buffermem(1) := "1111111111111111";
-			buffermem(2) := "1111111111111111";
-			buffermem(3) := "1111100000000001";
-			buffermem(4) := "1111110000000010";
-			buffermem(5) := "0010001000000000";
-			buffermem(6) := "0010011100000000";
-			buffermem(7) := "1100000100000000";
-			buffermem(8) := "0000100000001010";
-			buffermem(18) := "0110000100000000";
+			buffermem(0)   := "0000011100000011";
+			buffermem(1)   := "1111111111111111";
+			buffermem(2)   := "1111111111111111";
+			buffermem(3)   := "1111100000000001";
+			buffermem(4)   := "1111110000000010";
+			buffermem(5)   := "0010001000000000";
+			buffermem(6)   := "0010011100000000";
+			buffermem(7)   := "1100000100000000";
+			buffermem(8)   := "0000100000001010";
+			buffermem(18)  := "0110000100000000";
 
 
 			init := false;
