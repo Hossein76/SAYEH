@@ -19,7 +19,16 @@ architecture description_data_array of data_array is
   begin
 
     process (clk)
+    variable init : boolean := true;
     begin
+      if init = true then
+        temp(0) <= x"9354";
+        temp(1) <= x"2845";
+        temp(2) <= x"6739";
+        temp(3) <= x"1223";
+        init := false;
+      end if;
+
       if rising_edge(clk) then
         if   (wren='1') then
           temp(to_integer(unsigned (address))) <= wrdata;

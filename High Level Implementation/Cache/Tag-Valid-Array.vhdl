@@ -19,7 +19,15 @@ architecture description_tag_valid_array of tag_valid_array is
   signal temp: tags := (others => "00000");
   begin
     process (clk)
+    variable init : boolean := true;
     begin
+      if init = true then
+        temp(0) <= "10000";
+        temp(1) <= "10000";
+        temp(2) <= "10000";
+        temp(3) <= "10000";
+        init := false;
+      end if;
       if rising_edge(clk) then
         if   (wren='1') then
           temp(to_integer(unsigned (address))) <= '1' & wrdata;

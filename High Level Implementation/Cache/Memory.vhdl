@@ -35,7 +35,7 @@ begin
       buffermem(3) := "1111010000000001";
 
       -- mih r1, 00000000
-      buffermem(4) := "1111010100000000";
+      buffermem(4) := x"5314";
 
       -- add r1, r0
       buffermem(5) := "0000000010110100";
