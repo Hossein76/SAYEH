@@ -10,8 +10,8 @@ entity cache_memory is
   Read_Data : in std_logic;
   Write_Data : in std_logic;
   AddressBus: in std_logic_vector (9 downto 0);
-  dataIn : in std_logic_vector(15 downto 0);
-  dataOut : out std_logic_vector (15 downto 0)
+  Data_input : in std_logic_vector(15 downto 0);
+  Data_Output : out std_logic_vector (15 downto 0)
   );
 end cache_memory;
 architecture description_cache_memory of cache_memory is
@@ -108,11 +108,10 @@ architecture description_cache_memory of cache_memory is
                               w0_tagvalid_output(4) , w1_tagvalid_output(4) ,way_select_signal, w0_data_wren ,w0_tagvalid_wren, w0_tagvalid_invalidate,w1_data_wren  , w1_tagvalid_wren  ,
                               w1_tagvalid_invalidate , readMem , writeMem,mru_access_signal,mru_wreplace);
 
-      Mem_data_inout <= dataIn when Read_Data = '1' and Write_Data = '0' else dataIn when Write_ = '1' else "ZZZZZZZZZZZZZZZZ";
+      Mem_data_inout <= Data_input when  Write_Data = '1' else  "ZZZZZZZZZZZZZZZZ";
       w0_data_input <= Mem_data_inout;
       w1_data_input <= Mem_data_inout;
 
-      dataOut <= data_to_cpu when hit = '1' else
-                Mem_data_inout when hit = '0' else
-                "ZZZZZZZZZZZZZZZZ";
+      Data_Output <= data_to_cpu when hit = '1' else
+                Mem_data_inout ;
   end description_cache_memory;

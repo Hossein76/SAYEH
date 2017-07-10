@@ -21,7 +21,6 @@ architecture description_cache_controller of cache_controller is
   signal current_state , upcoming_state  : state;
 
 begin
-
   process (clk)
   begin
     if rising_edge(clk) then
@@ -34,13 +33,14 @@ begin
     w0_data_wren <= '0';
     w1_data_wren <= '0';
     w0_tagvalid_wren <= '0';
-    w1_tagvalid_wren <= '0';
     w0_Invalidate <= '0';
     w1_Invalidate1 <= '0';
     Read_from_Mem <= '0';
     Write_to_Mem <= '0';
     access_signal <= '0';
     wreplace <= "00";
+    w1_tagvalid_wren <= '0';
+
     case current_state is
 
       when Initial_state =>
@@ -69,22 +69,7 @@ begin
         end if;
         upcoming_state <= Initial_state;
 
-      when Read_data_State =>
-        if(hit = '1') then
-          access_signal <= '1';
-          upcoming_state <= Initial_state;
-        else
-          Read_from_Mem <= '1';
-          upcoming_state <= Reading_data_from_Mem;
-        end if;
 
-      when Reading_data_from_Mem =>
-        Read_from_Mem <= '1';
-        upcoming_state <= WAITING;
-
-      when WAITING =>
-        Read_from_Mem <= '1';
-        upcoming_state <= Writing_data_to_Cache;
 
       when Writing_data_to_Cache =>
         if(w0_tagvalid_input(4) = '0') then
@@ -108,6 +93,22 @@ begin
         end if;
         upcoming_state <= Initial_state;
 
+        when Read_data_State =>
+          if(hit = '1') then
+            access_signal <= '1';
+            upcoming_state <= Initial_state;
+          else
+            Read_from_Mem <= '1';
+            upcoming_state <= Reading_data_from_Mem;
+          end if;
+
+        when Reading_data_from_Mem =>
+          Read_from_Mem <= '1';
+          upcoming_state <= WAITING;
+
+        when WAITING =>
+          Read_from_Mem <= '1';
+          upcoming_state <= Writing_data_to_Cache;
       when Others =>
 
     end case;
