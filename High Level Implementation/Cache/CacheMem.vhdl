@@ -56,9 +56,8 @@ architecture description_cache_memory of cache_memory is
       port (
       clk : in std_logic;
       address : in std_logic_vector(5 downto 0);
-      hit : in std_logic;
-      w0_valid,w1_valid : in std_logic ;
-      wprevious : in std_logic;
+      hit , w0_valid,w1_valid ,access_signal: in std_logic ;
+      wreplace : in std_logic_vector(1 downto 0);
       way_select : out std_logic
       );
     end component;
@@ -84,35 +83,36 @@ architecture description_cache_memory of cache_memory is
       );
       end component;
 
-      signal  dwriteEnable0, dwriteEnable1, tvwriteEnable0, tvwriteEnable1, reset_n0, reset_n1,
-              invalidate0, invalidate1, hit , w0_valid , w1_valid, w0_p1, w1_p1, w0_reset, w1_reset, w0_confirm, w1_confirm,
-              memdataready, readMem , writeMem : std_logic;
-      signal dataOut0 , dataOut1 , writeData0 , writeData1 , cacheFinalOut , memInOut : std_logic_vector(15 downto 0);
-      signal tvOut0 , tvOut1 : std_logic_vector(4 downto 0);
+      signal  w0_data_wren, w1_data_wren, w0_tagvalid_wren, w1_tagvalid_wren, w0_tagvalid_reset, w1_tagvalid_reset,
+              w0_tagvalid_invalidate, w1_tagvalid_invalidate, hit , w0_valid , w1_valid, w0_p1, w1_p1, w0_reset, w1_reset, w0_confirm, w1_confirm,
+              memdataready, readMem , writeMem , mru_access_signal: std_logic;
+              signal mru_wreplace : std_logic_vector (1 downto 0);
+      signal w0_data_output , w1_data_output , w0_data_input , w1_data_input , data_to_cpu , Mem_data_inout : std_logic_vector(15 downto 0);
+      signal w0_tagvalid_output , w1_tagvalid_output : std_logic_vector(4 downto 0);
   begin
 
-    dw0 : dataArray port map (clk , AddressBus(5 downto 0) , dwriteEnable0 , writeData0 , dataOut0);
-    dw1 : dataArray port map (clk , AddressBus(5 downto 0) , dwriteEnable1 , writeData1 , dataOut1);
+    w0_data_array_module : data_array port map (clk , AddressBus(5 downto 0) , w0_data_wren , w0_data_input , w0_data_output);
+    w1_data_array_module : data_array port map (clk , AddressBus(5 downto 0) , w1_data_wren , w1_data_input , w1_data_output);
 
-    tvw0 : tagValidArray port map(clk , reset_n0 , AddressBus(5 downto 0) , tvwriteEnable0 , invalidate0 , AddressBus(9 downto 6) , tvOut0);
-    tvw1 : tagValidArray port map(clk , reset_n1 , AddressBus(5 downto 0) , tvwriteEnable1 , invalidate1 , AddressBus(9 downto 6) , tvOut1);
+    w0_tagvalid_module : tag_valid_array port map(clk , w0_tagvalid_reset , AddressBus(5 downto 0) , w0_tagvalid_wren , w0_tagvalid_invalidate , AddressBus(9 downto 6) , w0_tagvalid_output);
+    w1_tagvalid_module : tag_valid_array port map(clk , w1_tagvalid_reset , AddressBus(5 downto 0) , w1_tagvalid_wren , w1_tagvalid_invalidate , AddressBus(9 downto 6) , w1_tagvalid_output);
 
-    mhl : missHitLogic port map(AddressBus(9 downto 6) , tvOut0 , tvOut1 , hit, w0_valid , w1_valid);
+    miss_hit_logic_module : miss_hit_logic port map(AddressBus(9 downto 6) , w0_tagvalid_output , w1_tagvalid_output , hit, w0_valid , w1_valid);
 
-    ds : dataSelection port map(w0_valid , w1_valid , dataOut0 , dataOut1 , cacheFinalOut);
+    data_selection_module : data_selection port map(w0_valid , w1_valid , w0_data_output , w1_data_output , data_to_cpu);
 
-    --mru : mruArray port map(clk , AddressBus(5 downto 0) , w0_p1 , w1_p1 , w0_reset , w1_reset , w0_confirm , w1_confirm);
-    mem : Memory port map(clk , readMem , writeMem , AddressBus , memInOut , memdataready);
+    mru_module : most_recently_used_array port map(clk , AddressBus(5 downto 0) , hit , w0_valid , w1_valid, mru_access_signal , mru_wreplace , way_select_signal);
+    mem_module : Memory port map(clk , readMem , writeMem , AddressBus , Mem_data_inout , memdataready);
 
-    con : controller port map(clk , AddressBus(5 downto 0) , AddressBus(9 downto 6) , Read_Data , Write_Data , memdataready , hit , w0_valid , w1_valid ,
-                              tvOut0(4) , tvOut1(4) , dwriteEnable0 , dwriteEnable1 ,tvwriteEnable0 , tvwriteEnable1 , invalidate0 ,
-                              invalidate1 , readMem , writeMem);
+    cache_controller_module : cache_controller port map(clk , AddressBus,w0_tagvalid_output,w1_tagvalid_output, Read_Data , Write_Data , memdataready , hit , w0_valid , w1_valid ,
+                              w0_tagvalid_output(4) , w1_tagvalid_output(4) ,way_select_signal, w0_data_wren ,w0_tagvalid_wren, w0_tagvalid_invalidate,w1_data_wren  , w1_tagvalid_wren  ,
+                              w1_tagvalid_invalidate , readMem , writeMem,mru_access_signal,mru_wreplace);
 
-      memInOut <= dataIn when Read_Data = '1' and Write_Data = '0' else dataIn when Write_ = '1' else "ZZZZZZZZZZZZZZZZ";
-      writeData0 <= memInOut;
-      writeData1 <= memInOut;
+      Mem_data_inout <= dataIn when Read_Data = '1' and Write_Data = '0' else dataIn when Write_ = '1' else "ZZZZZZZZZZZZZZZZ";
+      w0_data_input <= Mem_data_inout;
+      w1_data_input <= Mem_data_inout;
 
-      dataOut <= cacheFinalOut when hit = '1' else
-                memInOut when hit = '0' else
+      dataOut <= data_to_cpu when hit = '1' else
+                Mem_data_inout when hit = '0' else
                 "ZZZZZZZZZZZZZZZZ";
   end description_cache_memory;
