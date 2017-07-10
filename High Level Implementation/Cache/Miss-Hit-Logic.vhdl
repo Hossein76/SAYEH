@@ -1,7 +1,9 @@
 library ieee;
-use IEEE.std_logic_1164.all;
 use IEEE.numeric_std.all;
+use IEEE.std_logic_1164.all;
 
+
+---------------
 entity miss_hit_logic is
   port(
   tag : in std_logic_vector(3 downto 0);
@@ -15,7 +17,11 @@ architecture description_miss_hit_logic of miss_hit_logic is
   begin
     process (tag,w0,w1)
     begin
-    if (w0(3 downto 0)=tag) and w0(4)='1' then
+    if (w0(3 downto 0)=tag) and w0(4)='1' and (w1(3 downto 0)=tag) and  w1(4)='1' then
+      hit<=1;
+      w0_valid<=1;
+      w1_valid<=1;
+    elsif (w0(3 downto 0)=tag) and  w0(4)='1'then
       hit<=1;
       w0_valid<=1;
       w1_valid<=0;
