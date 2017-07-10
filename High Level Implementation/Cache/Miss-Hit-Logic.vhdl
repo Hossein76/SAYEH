@@ -18,21 +18,21 @@ architecture description_miss_hit_logic of miss_hit_logic is
     process (tag,w0,w1)
     begin
     if (w0(3 downto 0)=tag) and w0(4)='1' and (w1(3 downto 0)=tag) and  w1(4)='1' then
-      hit<=1;
-      w0_valid<=1;
-      w1_valid<=1;
+      hit<='1';
+      w0_valid<='1';
+      w1_valid<='1';
     elsif (w0(3 downto 0)=tag) and  w0(4)='1'then
-      hit<=1;
-      w0_valid<=1;
-      w1_valid<=0;
+      hit<='1';
+      w0_valid<='1';
+      w1_valid<='0';
     elsif (w1(3 downto 0)=tag) and  w1(4)='1'then
-      hit<=1;
-      w1_valid<=1;
-      w0_valid<=0;
+      hit<='1';
+      w1_valid<='1';
+      w0_valid<='0';
     else
-      hit<=0;
-      w0_valid<=0;
-      w1_valid<=0;
+      hit<='0';
+      w0_valid<='0';
+      w1_valid<='0';
     end if;
     end process;
   end description_miss_hit_logic;

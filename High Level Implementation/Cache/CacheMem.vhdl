@@ -75,21 +75,24 @@ architecture description_cache_memory of cache_memory is
       component cache_controller is   port (
       clk : in std_logic;
       address : in std_logic_vector(9 downto 0);
-      index : in std_logic_vector(5 downto 0);
-      tag : in std_logic_vector(3 downto 0);
       w0_tagvalid_input, w1_tagvalid_input : in std_logic_vector(4 downto 0);
-      read_data , write_data , memory_data_ready , hit , w0_valid , w1_valid , w0_tagvalid_valid , w1_tagvalid_valid , mru_input: in std_logic;
-      w0_data_wren ,  w1_data_wren ,  w0_tagvalid_wren , w1_tagvalid_wren , w0_Invalidate , w1_Invalidate1 ,  Read_from_Mem ,  Write_to_Mem : out std_logic
+      read_data , write_data , memory_data_ready , hit , w0_valid , w1_valid , mru_input: in std_logic;
+      w0_data_wren  ,  w0_tagvalid_wren , w0_Invalidate ,w1_data_wren, w1_tagvalid_wren , w1_Invalidate1 ,  Read_from_Mem ,  Write_to_Mem , access_signal : out std_logic;
+      wreplace : out std_logic_vector(1 downto 0)
       );
       end component;
 
       signal  w0_data_wren, w1_data_wren, w0_tagvalid_wren, w1_tagvalid_wren, w0_tagvalid_reset, w1_tagvalid_reset,
               w0_tagvalid_invalidate, w1_tagvalid_invalidate, hit , w0_valid , w1_valid, w0_p1, w1_p1, w0_reset, w1_reset, w0_confirm, w1_confirm,
-              memdataready, readMem , writeMem , mru_access_signal: std_logic;
+              memdataready, readMem , writeMem , mru_access_signal  ,way_select_signal   : std_logic;
               signal mru_wreplace : std_logic_vector (1 downto 0);
       signal w0_data_output , w1_data_output , w0_data_input , w1_data_input , data_to_cpu , Mem_data_inout : std_logic_vector(15 downto 0);
       signal w0_tagvalid_output , w1_tagvalid_output : std_logic_vector(4 downto 0);
   begin
+
+        cache_controller_module : cache_controller port map(clk , AddressBus  , w0_tagvalid_output , w1_tagvalid_output , Read_Data , Write_Data , memdataready , hit , w0_valid , w1_valid ,
+                              way_select_signal, w0_data_wren ,w0_tagvalid_wren, w0_tagvalid_invalidate,w1_data_wren  , w1_tagvalid_wren  ,
+                                  w1_tagvalid_invalidate , readMem , writeMem,mru_access_signal,mru_wreplace);
 
     w0_data_array_module : data_array port map (clk , AddressBus(5 downto 0) , w0_data_wren , w0_data_input , w0_data_output);
     w1_data_array_module : data_array port map (clk , AddressBus(5 downto 0) , w1_data_wren , w1_data_input , w1_data_output);
@@ -103,10 +106,6 @@ architecture description_cache_memory of cache_memory is
 
     mru_module : most_recently_used_array port map(clk , AddressBus(5 downto 0) , hit , w0_valid , w1_valid, mru_access_signal , mru_wreplace , way_select_signal);
     mem_module : Memory port map(clk , readMem , writeMem , AddressBus , Mem_data_inout , memdataready);
-
-    cache_controller_module : cache_controller port map(clk , AddressBus,w0_tagvalid_output,w1_tagvalid_output, Read_Data , Write_Data , memdataready , hit , w0_valid , w1_valid ,
-                              w0_tagvalid_output(4) , w1_tagvalid_output(4) ,way_select_signal, w0_data_wren ,w0_tagvalid_wren, w0_tagvalid_invalidate,w1_data_wren  , w1_tagvalid_wren  ,
-                              w1_tagvalid_invalidate , readMem , writeMem,mru_access_signal,mru_wreplace);
 
       Mem_data_inout <= Data_input when  Write_Data = '1' else  "ZZZZZZZZZZZZZZZZ";
       w0_data_input <= Mem_data_inout;

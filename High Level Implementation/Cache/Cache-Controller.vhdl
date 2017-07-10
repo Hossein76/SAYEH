@@ -11,7 +11,7 @@ entity cache_controller  is
     w0_tagvalid_input, w1_tagvalid_input : in std_logic_vector(4 downto 0);
     read_data , write_data , memory_data_ready , hit , w0_valid , w1_valid , mru_input: in std_logic;
     w0_data_wren  ,  w0_tagvalid_wren , w0_Invalidate ,w1_data_wren, w1_tagvalid_wren , w1_Invalidate1 ,  Read_from_Mem ,  Write_to_Mem , access_signal : out std_logic;
-    wreplace : std_logic_vector(1 downto 0)
+    wreplace : out std_logic_vector(1 downto 0)
     );
 end cache_controller;
 

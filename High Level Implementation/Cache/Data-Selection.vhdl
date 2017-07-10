@@ -17,7 +17,7 @@ architecture description_data_selection of data_selection is
     process(w0_valid,w1_valid,w0_data_in,w1_data_in) begin
    if(w0_valid = '1') then
     out_put <= w0_data_in;
-  elseif (w1_valid='1') then
+  elsif (w1_valid='1') then
     out_put <= w1_data_in;
   else
   out_put <= "ZZZZZZZZZZZZZZZZ";

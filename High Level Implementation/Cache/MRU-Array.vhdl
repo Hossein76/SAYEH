@@ -29,7 +29,7 @@ architecture description_mru of most_recently_used_array is
         if ( hit='1' and access_signal= '1' )then
           if(w0_valid = '1') then
             w0_useage(to_integer(unsigned(address))) <= w0_useage(to_integer(unsigned(address))) + 1;
-          elsif (w1_valid) then
+          elsif (w1_valid = '1') then
             w1_useage(to_integer(unsigned(address))) <= w1_useage(to_integer(unsigned(address))) + 1;
           end if;
         elsif (wreplace="10")then
