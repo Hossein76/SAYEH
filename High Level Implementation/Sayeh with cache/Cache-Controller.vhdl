@@ -7,8 +7,8 @@ use IEEE.std_logic_1164.all;
 entity cache_controller  is
   port (
     clk : in std_logic;
-    address : in std_logic_vector(9 downto 0);
-    w0_tagvalid_input, w1_tagvalid_input : in std_logic_vector(4 downto 0);
+    address : in std_logic_vector(15 downto 0);
+    w0_tagvalid_input, w1_tagvalid_input : in std_logic_vector(10 downto 0);
     read_data , write_data , memory_data_ready , hit , w0_valid , w1_valid , mru_input: in std_logic;
     w0_data_wren  ,  w0_tagvalid_wren , w0_Invalidate ,w1_data_wren, w1_tagvalid_wren , w1_Invalidate1 ,  Read_from_Mem ,  Write_to_Mem , access_signal : out std_logic;
     wreplace : out std_logic_vector(1 downto 0)
@@ -58,12 +58,12 @@ begin
 
       when Writing_data_to_Mem   =>
 
-        if(w0_valid = '1') and address(9 downto 6)=w0_tagvalid_input(3 downto 0) then
+        if(w0_valid = '1') and address(15 downto 6)=w0_tagvalid_input(3 downto 0) then
 
           w0_Invalidate <= '1';
           w0_tagvalid_wren <= '0';
         end if;
-        if(w1_valid = '1') and address(9 downto 6)=w1_tagvalid_input(3 downto 0) then
+        if(w1_valid = '1') and address(15 downto 6)=w1_tagvalid_input(3 downto 0) then
           w1_Invalidate1 <= '1';
           w1_tagvalid_wren <= '0';
         end if;
@@ -72,15 +72,15 @@ begin
 
 
       when Writing_data_to_Cache =>
-        if(w0_tagvalid_input(4) = '0') then
+        if(w0_tagvalid_input(10) = '0') then
           w0_data_wren <= '1';
           w0_tagvalid_wren <= '1';
           wreplace  <= "10";
-        elsif (w1_tagvalid_input(4) = '0') then
+        elsif (w1_tagvalid_input(10) = '0') then
           w1_data_wren <= '1';
           w1_tagvalid_wren <= '1';
           wreplace  <= "11";
-        elsif (w0_tagvalid_input(4) = '1' and w1_tagvalid_input(4) = '1') then
+        elsif (w0_tagvalid_input(10) = '1' and w1_tagvalid_input(10) = '1') then
           if(mru_input = '0') then
             w0_data_wren <= '1';
             w0_tagvalid_wren <= '1';
